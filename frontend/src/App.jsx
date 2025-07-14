@@ -1,23 +1,29 @@
-// frontend/src/App.jsx
 import { useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
-  useNavigate,
 } from "react-router-dom";
 import OwnerSetup from "./pages/OwnerSetup";
 import VotingPage from "./pages/VotingPage";
 import ResultPage from "./pages/ResultPage";
-import OwnerPanel from "./pages/OwnerPanel"; // ✅ 新的整合管理頁面
-import VotePage from "./pages/VotePage"; // ✅ 外部投票人用頁面
+import OwnerPanel from "./pages/OwnerPanel";
+import VotePage from "./pages/VotePage";
+import VotingJson from "./contract/Voting.json";
 
-// 🎯 管理員完整流程頁面邏輯
+// ⭐ 外部使用者進入結果頁（從網址取合約位址）
+function ResultPageWrapper() {
+  const addr = new URLSearchParams(window.location.search).get("addr");
+  if (!addr) return <p>❌ 無效的合約地址</p>;
+  const contractInfo = { address: addr, abi: VotingJson.abi };
+  return <ResultPage contractInfo={contractInfo} />;
+}
+
+// 🎯 管理員完整流程
 function OwnerFlow() {
   const [contractInfo, setContractInfo] = useState(null);
-  const [view, setView] = useState("setup"); // setup | vote | result | panel
+  const [view, setView] = useState("setup");
 
-  // ✅ 一開始進入會顯示部署頁
   if (!contractInfo || view === "setup") {
     return (
       <OwnerSetup
@@ -63,11 +69,9 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        {/* 🏠 管理員頁面（部署合約 → 控制整個流程） */}
         <Route path="/" element={<OwnerFlow />} />
-
-        {/* 🌐 分享連結進來的投票頁 */}
         <Route path="/vote" element={<VotePage />} />
+        <Route path="/result" element={<ResultPageWrapper />} />
       </Routes>
     </Router>
   );

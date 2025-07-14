@@ -32,10 +32,7 @@ const fetchResults = async (c) => {
     const total = await c.totalVotes();
     setTotalVoters(Number(total));
 
-    console.log("[DEBUG] 呼叫 getVotePercentages...");
     const [ids, names, percentages] = await c.getVotePercentages();
-
-    console.log("[DEBUG] 呼叫 getVotesBreakdown...");
     const [_, __, votes] = await c.getVotesBreakdown();
 
     const list = names.map((name, i) => ({
