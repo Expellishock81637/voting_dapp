@@ -1,35 +1,29 @@
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
+import CandidateCard from "../components/CandidateCard";
+import CountdownTimer from "../components/CountdownTimer";
+import { useNavigate } from "react-router-dom";
 
 export default function VotePage() {
   const [contract, setContract] = useState(null);
   const [candidates, setCandidates] = useState([]);
-  const [voted, setVoted] = useState(false);
   const [status, setStatus] = useState("🔍 檢查中...");
-  const [selectedId, setSelectedId] = useState(null);
+  const [voted, setVoted] = useState(false);
+  const [endTime, setEndTime] = useState(0);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const setup = async () => {
-      let rawAddr = new URLSearchParams(window.location.search).get("addr");
-      if (!rawAddr) {
-        setStatus("❌ 錯誤：缺少合約地址參數");
-        return;
-      }
-
-      const contractAddress = rawAddr.trim();
-
-      // 🧼 加上格式驗證
-      if (!ethers.isAddress(contractAddress)) {
-        setStatus("❌ 錯誤：合約地址格式不正確");
-        return;
-      }
-
-      if (!window.ethereum) {
-        setStatus("❌ 請先安裝 MetaMask 錢包");
-        return;
-      }
-
       try {
+        let rawAddr = new URLSearchParams(window.location.search).get("addr");
+        if (!rawAddr) return setStatus("❌ 錯誤：缺少合約地址參數");
+
+        const contractAddress = rawAddr.trim();
+        if (!ethers.isAddress(contractAddress)) return setStatus("❌ 錯誤：合約地址格式不正確");
+
+        if (!window.ethereum) return setStatus("❌ 請先安裝 MetaMask 錢包");
+
         const provider = new ethers.BrowserProvider(window.ethereum);
         await window.ethereum.request({ method: "eth_requestAccounts" });
         const signer = await provider.getSigner();
@@ -40,35 +34,44 @@ export default function VotePage() {
         const c = new ethers.Contract(contractAddress, abiJson.abi, signer);
         setContract(c);
 
-        const candidateList = await c.getCandidateList();
-        const formatted = candidateList
+        const list = await c.getCandidateList();
+        const active = list
           .map((item, index) => ({ id: index, name: item.name, disabled: !item.isActive }))
           .filter((item) => !item.disabled);
-        setCandidates(formatted);
+        setCandidates(active);
 
-        const hasVoted = await c.hasVoted(await signer.getAddress());
+        const end = await c.votingEnd();
+        setEndTime(Number(end));
+
+        const hasVoted = await c.didVote(address);
         setVoted(hasVoted);
 
         setStatus("✅ 錢包連接成功");
       } catch (err) {
         console.error(err);
-        setStatus("❌ 錢包初始化失敗：" + (err?.message || "未知錯誤"));
+        setStatus("❌ 初始化失敗：" + (err?.message || "未知錯誤"));
       }
     };
 
     setup();
   }, []);
 
-  const handleVote = async () => {
+  const handleVote = async (id) => {
     try {
-      const tx = await contract.vote(selectedId);
+      setStatus("⏳ 發送交易中...");
+      const tx = await contract.vote(id);
       await tx.wait();
-      setVoted(true);
-      setStatus("✅ 投票成功！");
+      setStatus("✅ 投票成功！即將跳轉...");
+      setTimeout(() => navigate(`/result?addr=${contract.target}`), 1500);
     } catch (err) {
       console.error(err);
       setStatus("❌ 投票失敗：" + (err?.message || "未知錯誤"));
     }
+  };
+
+  const handleCountdownEnd = () => {
+    setStatus("⏳ 投票時間已結束，自動前往結果頁...");
+    setTimeout(() => navigate(`/result?addr=${contract.target}`), 1500);
   };
 
   return (
@@ -76,31 +79,22 @@ export default function VotePage() {
       <h2>🗳️ 投票頁面</h2>
       <p>{status}</p>
 
+      {endTime > 0 && (
+        <CountdownTimer endTime={endTime} onEnd={handleCountdownEnd} />
+      )}
+
       {voted ? (
         <p>✅ 你已經投過票了</p>
       ) : (
-        <>
-          <div style={{ marginTop: "1rem" }}>
-            {candidates.map((c) => (
-              <div key={c.id}>
-                <input
-                  type="radio"
-                  name="candidate"
-                  value={c.id}
-                  onChange={() => setSelectedId(c.id)}
-                />
-                {c.name}
-              </div>
-            ))}
-          </div>
-          <button
-            onClick={handleVote}
-            disabled={selectedId === null}
-            style={{ marginTop: "1rem" }}
-          >
-            🗳️ 確認投票
-          </button>
-        </>
+        candidates.map((c) => (
+          <CandidateCard
+            key={c.id}
+            id={c.id}
+            name={c.name}
+            disabled={c.disabled}
+            onVote={handleVote}
+          />
+        ))
       )}
     </div>
   );
