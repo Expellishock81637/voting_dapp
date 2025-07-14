@@ -16,7 +16,7 @@ export default function VotePage() {
   useEffect(() => {
     const setup = async () => {
       try {
-        const rawAddr = new URLSearchParams(window.location.search).get("addr");
+        let rawAddr = new URLSearchParams(window.location.search).get("addr");
         if (!rawAddr) return setStatus("❌ 錯誤：缺少合約地址參數");
 
         const contractAddress = rawAddr.trim();
@@ -28,40 +28,22 @@ export default function VotePage() {
         await window.ethereum.request({ method: "eth_requestAccounts" });
         const signer = await provider.getSigner();
 
-        // === ① 載入 Voting 主合約 ===
-        const votingABI = (await (await fetch("/contract/Voting.json")).json()).abi;
-        const voting = new ethers.Contract(contractAddress, votingABI, signer);
-        setContract(voting); // 用於投票與結果頁跳轉
+        const abiRes = await fetch("/contract/Voting.json");
+        const abiJson = await abiRes.json();
 
-        // === ② 判斷是匿名或公開模式 ===
-        const isAnonymous = await voting.isAnonymous();
+        const c = new ethers.Contract(contractAddress, abiJson.abi, signer);
+        setContract(c);
 
-        // === ③ 根據模式載入對應子合約 ABI ===
-        const votingModeABI = (
-          await (await fetch(
-            isAnonymous
-              ? "/contract/VotingAnonymous.json"
-              : "/contract/VotingPublic.json"
-          )).json()
-        ).abi;
-
-        // === ④ 抓子合約地址並初始化 ===
-        const votingModeAddr = await voting.votingMode();
-        const votingMode = new ethers.Contract(votingModeAddr, votingModeABI, signer);
-
-        // === ⑤ 取得候選人清單 ===
-        const list = await votingMode.getCandidateList();
+        const list = await c.getCandidateList();
         const active = list
           .map((item, index) => ({ id: index, name: item.name, disabled: !item.isActive }))
           .filter((item) => !item.disabled);
         setCandidates(active);
 
-        // === ⑥ 取得結束時間與投票狀態 ===
-        const end = await voting.votingEnd();
+        const end = await c.votingEnd();
         setEndTime(Number(end));
 
-        const userAddress = await signer.getAddress();
-        const hasVoted = await votingMode.hasVoted(userAddress);
+        const hasVoted = await c.didVote(address);
         setVoted(hasVoted);
 
         setStatus("✅ 錢包連接成功");
@@ -73,7 +55,6 @@ export default function VotePage() {
 
     setup();
   }, []);
-
 
   const handleVote = async (id) => {
     try {
