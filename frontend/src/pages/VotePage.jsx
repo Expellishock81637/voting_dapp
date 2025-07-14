@@ -16,7 +16,7 @@ export default function VotePage() {
   useEffect(() => {
     const setup = async () => {
       try {
-        let rawAddr = new URLSearchParams(window.location.search).get("addr");
+        const rawAddr = new URLSearchParams(window.location.search).get("addr");
         if (!rawAddr) return setStatus("❌ 錯誤：缺少合約地址參數");
 
         const contractAddress = rawAddr.trim();
@@ -28,33 +28,35 @@ export default function VotePage() {
         await window.ethereum.request({ method: "eth_requestAccounts" });
         const signer = await provider.getSigner();
 
-        // 連主合約 Voting
+        // === ① 載入 Voting 主合約 ===
         const votingABI = (await (await fetch("/contract/Voting.json")).json()).abi;
         const voting = new ethers.Contract(contractAddress, votingABI, signer);
-        setContract(voting); // 這是主合約
+        setContract(voting); // 用於投票與結果頁跳轉
 
-        // 抓子合約 votingMode 地址
-        const modeAddr = await voting.votingMode();
+        // === ② 判斷是匿名或公開模式 ===
+        const isAnonymous = await voting.isAnonymous();
 
-        // 用 ABI 嘗試載入子合約（可能是公開或匿名）
-        let modeABI;
-        try {
-          modeABI = (await (await fetch("/contract/VotingPublic.json")).json()).abi;
-          await new ethers.Contract(modeAddr, modeABI, signer).getCandidateList(); // 試試看能不能叫用
-        } catch {
-          // 如果抓不到，就用匿名的 ABI
-          modeABI = (await (await fetch("/contract/VotingAnonymous.json")).json()).abi;
-        }
+        // === ③ 根據模式載入對應子合約 ABI ===
+        const votingModeABI = (
+          await (await fetch(
+            isAnonymous
+              ? "/contract/VotingAnonymous.json"
+              : "/contract/VotingPublic.json"
+          )).json()
+        ).abi;
 
-        const votingMode = new ethers.Contract(modeAddr, modeABI, signer);
+        // === ④ 抓子合約地址並初始化 ===
+        const votingModeAddr = await voting.votingMode();
+        const votingMode = new ethers.Contract(votingModeAddr, votingModeABI, signer);
 
-        // 抓候選人清單
+        // === ⑤ 取得候選人清單 ===
         const list = await votingMode.getCandidateList();
         const active = list
           .map((item, index) => ({ id: index, name: item.name, disabled: !item.isActive }))
           .filter((item) => !item.disabled);
         setCandidates(active);
 
+        // === ⑥ 取得結束時間與投票狀態 ===
         const end = await voting.votingEnd();
         setEndTime(Number(end));
 
