@@ -8,12 +8,19 @@ export default function VotePage() {
   const [status, setStatus] = useState("🔍 檢查中...");
   const [selectedId, setSelectedId] = useState(null);
 
-  const contractAddress = new URLSearchParams(window.location.search).get("addr");
-
   useEffect(() => {
     const setup = async () => {
-      if (!contractAddress) {
-        setStatus("❌ 無效的連結");
+      let rawAddr = new URLSearchParams(window.location.search).get("addr");
+      if (!rawAddr) {
+        setStatus("❌ 錯誤：缺少合約地址參數");
+        return;
+      }
+
+      const contractAddress = rawAddr.trim();
+
+      // 🧼 加上格式驗證
+      if (!ethers.isAddress(contractAddress)) {
+        setStatus("❌ 錯誤：合約地址格式不正確");
         return;
       }
 
@@ -45,12 +52,12 @@ export default function VotePage() {
         setStatus("✅ 錢包連接成功");
       } catch (err) {
         console.error(err);
-        setStatus("❌ 錢包初始化失敗：" + err.message);
+        setStatus("❌ 錢包初始化失敗：" + (err?.message || "未知錯誤"));
       }
     };
 
     setup();
-  }, [contractAddress]);
+  }, []);
 
   const handleVote = async () => {
     try {
@@ -60,7 +67,7 @@ export default function VotePage() {
       setStatus("✅ 投票成功！");
     } catch (err) {
       console.error(err);
-      setStatus("❌ 投票失敗：" + err.message);
+      setStatus("❌ 投票失敗：" + (err?.message || "未知錯誤"));
     }
   };
 

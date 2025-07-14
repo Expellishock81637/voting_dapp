@@ -1,11 +1,13 @@
-// frontend/src/components/ShareLink.jsx
 import { useState } from "react";
 import QRCode from "react-qr-code";
 
 export default function ShareLink({ contractAddress }) {
   const [show, setShow] = useState(false);
   const [copied, setCopied] = useState(false);
-  const voteUrl = `${window.location.origin}/vote?addr=${contractAddress}`;
+
+  if (!contractAddress) return null;
+
+  const voteUrl = `${window.location.origin}/vote?addr=${encodeURIComponent(contractAddress)}`;
 
   const handleCopy = async () => {
     try {
@@ -33,13 +35,12 @@ export default function ShareLink({ contractAddress }) {
             boxShadow: "0 0 10px rgba(0,0,0,0.3)",
             zIndex: 9999,
             textAlign: "center",
-            width: "300px"
+            width: "300px",
           }}
         >
           <h3>📤 分享投票連結</h3>
           <QRCode value={voteUrl} size={160} style={{ margin: "1rem auto" }} />
 
-          {/* 中間插入圖片 */}
           <img
             src="/metamask-icon.png"
             alt="MetaMask Logo"
