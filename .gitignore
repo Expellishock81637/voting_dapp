@@ -1,0 +1,51 @@
+# === Node modules ===
+node_modules/
+frontend/node_modules/
+
+# === 環境變數 ===
+.env
+.env.*
+!.env.example
+
+# === Hardhat build/output ===
+artifacts/
+cache/
+typechain/
+typechain-types/
+
+# === Hardhat coverage ===
+coverage/
+coverage.json
+
+# === Hardhat Ignition local deployment ===
+ignition/
+ignition/deployments/
+
+# === Vite build output ===
+dist/
+frontend/dist/
+
+# === Logs ===
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# === IDE/editor 系統檔案 ===
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# === OS 系統垃圾檔案 ===
+*.log
+*.tgz
+*.zip
+
+# === 測試結果 ===
+*.lcov
+*.tsbuildinfo
+
+# === 匯出用產物（若有）===
+build/
+out/
