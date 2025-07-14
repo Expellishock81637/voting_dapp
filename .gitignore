@@ -20,6 +20,8 @@ coverage.json
 # === Hardhat Ignition local deployment ===
 ignition/
 ignition/deployments/
+hardhat.config.js
+scripts/deploy.js
 
 # === Vite build output ===
 dist/

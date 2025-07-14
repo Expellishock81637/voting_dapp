@@ -28,22 +28,38 @@ export default function VotePage() {
         await window.ethereum.request({ method: "eth_requestAccounts" });
         const signer = await provider.getSigner();
 
-        const abiRes = await fetch("/contract/Voting.json");
-        const abiJson = await abiRes.json();
+        // 連主合約 Voting
+        const votingABI = (await (await fetch("/contract/Voting.json")).json()).abi;
+        const voting = new ethers.Contract(contractAddress, votingABI, signer);
+        setContract(voting); // 這是主合約
 
-        const c = new ethers.Contract(contractAddress, abiJson.abi, signer);
-        setContract(c);
+        // 抓子合約 votingMode 地址
+        const modeAddr = await voting.votingMode();
 
-        const list = await c.getCandidateList();
+        // 用 ABI 嘗試載入子合約（可能是公開或匿名）
+        let modeABI;
+        try {
+          modeABI = (await (await fetch("/contract/VotingPublic.json")).json()).abi;
+          await new ethers.Contract(modeAddr, modeABI, signer).getCandidateList(); // 試試看能不能叫用
+        } catch {
+          // 如果抓不到，就用匿名的 ABI
+          modeABI = (await (await fetch("/contract/VotingAnonymous.json")).json()).abi;
+        }
+
+        const votingMode = new ethers.Contract(modeAddr, modeABI, signer);
+
+        // 抓候選人清單
+        const list = await votingMode.getCandidateList();
         const active = list
           .map((item, index) => ({ id: index, name: item.name, disabled: !item.isActive }))
           .filter((item) => !item.disabled);
         setCandidates(active);
 
-        const end = await c.votingEnd();
+        const end = await voting.votingEnd();
         setEndTime(Number(end));
 
-        const hasVoted = await c.didVote(address);
+        const userAddress = await signer.getAddress();
+        const hasVoted = await votingMode.hasVoted(userAddress);
         setVoted(hasVoted);
 
         setStatus("✅ 錢包連接成功");
@@ -55,6 +71,7 @@ export default function VotePage() {
 
     setup();
   }, []);
+
 
   const handleVote = async (id) => {
     try {
