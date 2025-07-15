@@ -3,6 +3,8 @@ import { useState } from "react";
 import { ethers } from "ethers";
 import CandidateListEditor from "../components/CandidateListEditor";
 import VotingDurationInput from "../components/VotingDurationInput";
+import AnonymousToggle from "../components/AnonymousToggle";
+import PrimaryButton from "../components/PrimaryButton";
 import VotingJson from "../contract/Voting.json";
 
 export default function OwnerSetup({ onDeployed }) {
@@ -64,14 +66,10 @@ export default function OwnerSetup({ onDeployed }) {
     <div style={{ padding: "2rem" }}>
       <h2>📋 建立投票合約</h2>
 
-      <div>
-        <label>是否匿名投票：</label>
-        <input
-          type="checkbox"
-          checked={isAnonymous}
-          onChange={(e) => setIsAnonymous(e.target.checked)}
-        />
-      </div>
+      <AnonymousToggle
+        isAnonymous={isAnonymous}
+        onToggle={() => setIsAnonymous((prev) => !prev)}
+      />
 
       <CandidateListEditor
         candidates={candidates}
@@ -79,10 +77,11 @@ export default function OwnerSetup({ onDeployed }) {
         onAdd={addCandidate}
         onRemove={removeCandidate}
       />
+      <h3 style={{ marginBottom: "1rem" }}>⏱️ 設定投票時間（分鐘）</h3>
       <VotingDurationInput duration={duration} onChange={setDuration} />
-      <button onClick={deployContract} style={{ marginTop: "1rem" }}>
+      <PrimaryButton onClick={deployContract} style={{ marginTop: "1rem" }}>
         🚀 部署合約
-      </button>
+      </PrimaryButton>
       <p>{status}</p>
     </div>
   );

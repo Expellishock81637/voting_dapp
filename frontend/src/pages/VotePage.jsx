@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import CandidateCard from "../components/CandidateCard";
 import CountdownTimer from "../components/CountdownTimer";
+import ShareLink from "../components/ShareLink";
 import { useNavigate } from "react-router-dom";
 
 export default function VotePage() {
   const [contract, setContract] = useState(null);
+  const [contractAddress, setContractAddress] = useState("");
   const [candidates, setCandidates] = useState([]);
   const [status, setStatus] = useState("🔍 檢查中...");
   const [voted, setVoted] = useState(false);
@@ -20,9 +22,12 @@ export default function VotePage() {
         if (!rawAddr) return setStatus("❌ 錯誤：缺少合約地址參數");
 
         const contractAddress = rawAddr.trim();
+        
         if (!ethers.isAddress(contractAddress)) return setStatus("❌ 錯誤：合約地址格式不正確");
 
         if (!window.ethereum) return setStatus("❌ 請先安裝 MetaMask 錢包");
+
+        setContractAddress(contractAddress);
 
         const provider = new ethers.BrowserProvider(window.ethereum);
         await window.ethereum.request({ method: "eth_requestAccounts" });
@@ -77,7 +82,8 @@ export default function VotePage() {
   return (
     <div style={{ padding: "2rem" }}>
       <h2>🗳️ 投票頁面</h2>
-      <p>{status}</p>
+
+      <ShareLink contractAddress={contractAddress} />
 
       {endTime > 0 && (
         <CountdownTimer endTime={endTime} onEnd={handleCountdownEnd} />

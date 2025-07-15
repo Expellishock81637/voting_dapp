@@ -1,5 +1,6 @@
 import { useState } from "react";
 import QRCode from "react-qr-code";
+import PrimaryButton from "../components/PrimaryButton";
 
 export default function ShareLink({ contractAddress }) {
   const [show, setShow] = useState(false);
@@ -21,7 +22,7 @@ export default function ShareLink({ contractAddress }) {
 
   return (
     <div>
-      <button onClick={() => setShow(true)}>🔗 分享連結</button>
+      <PrimaryButton onClick={() => setShow(true)}>🔗 分享連結</PrimaryButton>
       {show && (
         <div
           style={{
@@ -38,22 +39,32 @@ export default function ShareLink({ contractAddress }) {
             width: "300px",
           }}
         >
+          {/* 右上角關閉按鈕 */}
+          <button
+            onClick={() => setShow(false)}
+            style={{
+              position: "absolute",
+              top: "0.5rem",
+              right: "0.5rem",
+              background: "transparent",
+              border: "none",
+              fontSize: "1.2rem",
+              cursor: "pointer",
+            }}
+          >
+            ❌
+          </button>
+
           <h3>📤 分享投票連結</h3>
           <QRCode value={voteUrl} size={160} style={{ margin: "1rem auto" }} />
 
-          <img
-            src="/metamask-icon.png"
-            alt="MetaMask Logo"
-            style={{ width: "40px", height: "40px", margin: "1rem auto" }}
-          />
+          <p style={{ marginTop: "1rem", fontSize: "0.9rem", color: "#888" }}>
+            📱 手機投票功能尚未支援，請使用電腦投票。
+          </p>          
 
           <p style={{ wordBreak: "break-all" }}>{voteUrl}</p>
-          <button onClick={handleCopy}>📋 複製連結</button>
+          <PrimaryButton onClick={handleCopy}>📋 複製連結</PrimaryButton>
           {copied && <p style={{ color: "green", marginTop: "0.5rem" }}>✅ 已複製</p>}
-          <br />
-          <button onClick={() => setShow(false)} style={{ marginTop: "0.5rem" }}>
-            ❎ 關閉
-          </button>
         </div>
       )}
     </div>

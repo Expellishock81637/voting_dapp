@@ -2,6 +2,11 @@
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import VotingDurationInput from "../components/VotingDurationInput";
+import CandidateManagerPanel from "../components/CandidateManagerPanel";
+import PrimaryButton from "../components/PrimaryButton";
+import VoteStatusQuery from "../components/VoteStatusQuery";
+import VotingInfoPanel from "../components/VotingInfoPanel";
+
 
 export default function OwnerPanel({ contractInfo }) {
   const [contract, setContract] = useState(null);
@@ -26,7 +31,14 @@ export default function OwnerPanel({ contractInfo }) {
 
       // 基礎資訊
       const list = await c.getCandidateList();
-      setCandidates(list.map((item, index) => ({ id: index, name: item.name, isActive: item.isActive })));
+      setCandidates(
+        list.map((item, index) => ({
+          id: index,
+          name: item.name,
+          isActive: item.isActive,
+          isEditing: false,
+        }))
+      );
       setTotalVotes(Number(await c.totalVotes()));
       setVotingEnd(Number(await c.votingEnd()));
       setIsAnonymous(await c.isAnonymous());
@@ -39,7 +51,24 @@ export default function OwnerPanel({ contractInfo }) {
 
   const refreshCandidates = async () => {
     const list = await contract.getCandidateList();
-    setCandidates(list.map((item, index) => ({ id: index, name: item.name, isActive: item.isActive })));
+    setCandidates(
+      list.map((item, index) => ({
+        id: index,
+        name: item.name,
+        isActive: item.isActive,
+        isEditing: false,
+      }))
+    );
+  };
+
+  const toggleEditing = (id) => {
+    setCandidates((prev) =>
+      prev.map((c) =>
+        c.id === id
+          ? { ...c, isEditing: !c.isEditing }
+          : { ...c, isEditing: false }
+      )
+    );
   };
 
   const handleAddCandidate = async () => {
@@ -122,67 +151,48 @@ export default function OwnerPanel({ contractInfo }) {
 
       {/* 候選人管理區塊 */}
       <section>
-        <h3>📋 候選人列表</h3>
-        <ul>
-          {candidates.map((c) => (
-            <li key={c.id}>
-              ID {c.id}: {c.name} {c.isActive ? "✅" : "❌ 停用"}
-              <input
-                type="text"
-                placeholder="新名稱"
-                value={editNames[c.id] || ""}
-                onChange={(e) => setEditNames({ ...editNames, [c.id]: e.target.value })}
-                style={{ marginLeft: "1rem" }}
-              />
-              <button onClick={() => handleEditCandidate(c.id)} style={{ marginLeft: "0.5rem" }}>✏️ 修改</button>
-              <button onClick={() => handleDisableCandidate(c.id)} style={{ marginLeft: "0.5rem" }}>🗑️ 停用</button>
-            </li>
-          ))}
-        </ul>
-        <input
-          type="text"
-          placeholder="新增候選人名稱"
-          value={newCandidate}
-          onChange={(e) => setNewCandidate(e.target.value)}
+        <CandidateManagerPanel
+          candidates={candidates}
+          newCandidate={newCandidate}
+          editNames={editNames}
+          setEditNames={setEditNames}
+          setNewCandidate={setNewCandidate}
+          onAdd={handleAddCandidate}
+          onEdit={handleEditCandidate}
+          onDisable={handleDisableCandidate}
+          toggleEditing={toggleEditing}
         />
-        <button onClick={handleAddCandidate} style={{ marginLeft: "0.5rem" }}>➕ 新增候選人</button>
         <div style={{ marginTop: "1rem" }}>
-          <button onClick={handleEndVoting}>⏹️ 提前結束投票</button>
+          <PrimaryButton onClick={handleEndVoting}>⛔ 提前結束投票</PrimaryButton>
         </div>
       </section>
 
+
       {/* 延長投票時間區塊 */}
       <section style={{ marginTop: "2rem" }}>
-        <h3>⏱️ 延長投票時間</h3>
+        <h3 style={{ marginBottom: "1rem" }}>⏱️ 延長投票時間（分鐘）</h3>
         <VotingDurationInput duration={extendMinutes} onChange={setExtendMinutes} />
-        <button onClick={handleExtendVoting}>➕ 延長 {extendMinutes} 分鐘</button>
+        <PrimaryButton onClick={handleExtendVoting}>➕ 延長 {extendMinutes} 分鐘</PrimaryButton>
       </section>
 
       {/* 查詢功能區塊 */}
       <section style={{ marginTop: "2rem" }}>
-        <h3>🔍 查詢投票狀態</h3>
-        <input
-          type="text"
-          placeholder="輸入地址"
-          value={queryAddress}
-          onChange={(e) => setQueryAddress(e.target.value)}
-          style={{ width: "320px" }}
+        <VoteStatusQuery
+          queryAddress={queryAddress}
+          setQueryAddress={setQueryAddress}
+          queryResult={queryResult}
+          onQuery={handleQuery}
         />
-        <button onClick={handleQuery} style={{ marginLeft: "0.5rem" }}>查詢</button>
-        {queryResult !== null && (
-          <p>{queryResult ? "✅ 此地址已投票" : "❌ 此地址尚未投票"}</p>
-        )}
       </section>
 
       {/* 投票資訊區塊 */}
       <section style={{ marginTop: "2rem" }}>
-        <h3>📊 投票資訊</h3>
-        <ul>
-          <li>總投票人數：{totalVotes}</li>
-          <li>是否匿名投票：{isAnonymous ? "✅ 是" : "❌ 否"}</li>
-          <li>投票結束時間（Unix）：{votingEnd}</li>
-          <li>目前區塊時間（Unix）：{blockTime}</li>
-        </ul>
+        <VotingInfoPanel
+          totalVotes={totalVotes}
+          isAnonymous={isAnonymous}
+          votingEnd={votingEnd}
+          blockTime={blockTime}
+        />
       </section>
     </div>
   );

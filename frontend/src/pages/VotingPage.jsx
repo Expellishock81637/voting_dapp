@@ -100,10 +100,6 @@ export default function VotingPage({ contractInfo, onViewResult }) {
         />
       ))}
 
-      <button onClick={onViewResult} style={{ marginLeft: "1rem" }}>
-        📊 查看結果
-      </button>
-
       <p>{status}</p>
     </div>
   );
