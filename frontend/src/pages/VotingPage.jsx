@@ -82,23 +82,30 @@ export default function VotingPage({ contractInfo, onViewResult }) {
   return (
     <div style={{ padding: "2rem" }}>
       <h2>🗳️ 投票頁面</h2>
-      {contractInfo?.address && (
-        <ShareLink contractAddress={contractInfo.address} />
-      )}      
 
-      {!isAnonymous && endTime > 0 && (
-        <CountdownTimer endTime={endTime} onEnd={handleCountdownEnd} />
-      )}
+      <section style={{ marginTop: "2rem" }}>
+        {contractInfo?.address && (
+          <ShareLink contractAddress={contractInfo.address} />
+        )} 
+      </section>
+     
+      <section style={{ marginTop: "2rem" }}>
+        {endTime > 0 && (
+          <CountdownTimer endTime={endTime} onEnd={handleCountdownEnd} />
+        )}
+      </section>
 
-      {candidates.map((c) => (
-        <CandidateCard
-          key={c.id}
-          id={c.id}
-          name={c.name}
-          onVote={handleVote}
-          disabled={c.disabled}
-        />
+      <section style={{ marginTop: "1rem" }}>
+        {candidates.map((c) => (
+          <CandidateCard
+            key={c.id}
+            id={c.id}
+            name={c.name}
+            onVote={handleVote}
+            disabled={c.disabled}/>
       ))}
+      </section>
+
 
       <p>{status}</p>
     </div>
