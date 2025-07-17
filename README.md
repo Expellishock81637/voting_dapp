@@ -19,6 +19,27 @@
 👉 **[[https://voting-dapp-eight-pink.vercel.app/](https://voting-dapp-eight-pink.vercel.app/)]**  
 （⚠️ 請確保瀏覽器已安裝 MetaMask 並切換至 Holesky 測試網）
 
+### 如何在 MetaMask 新增 Holesky 測試網
+
+1. 開啟 MetaMask，點擊右上角帳戶下拉選單 → 點選 **Settings（設定）**
+2. 左側選單點選 **Networks（網路）** → 點選 **Add a network（新增網路）**
+3. 選擇 **Add a network manually（手動新增）**
+4. 填入以下資訊：
+
+| 欄位名稱          | 設定值                                                   |
+|-------------------|----------------------------------------------------------|
+| 網路名稱          | Holesky Testnet                                          |
+| RPC URL           | `https://ethereum-holesky.publicnode.com`               |
+| Chain ID          | `17000`                                                  |
+| Currency Symbol   | `ETH`                                                    |
+| Block Explorer URL| `https://holesky.etherscan.io`                           |
+
+5. 儲存後切換至 Holesky 網路，即可與本投票 DApp 互動。
+
+**測試幣水龍頭（Faucet）**：  
+前往以下連結免費挖取 Holesky 測試 ETH：  
+👉 [https://holesky-faucet.pk910.de/](https://holesky-faucet.pk910.de/)
+
 ---
 
 ## 使用技術
