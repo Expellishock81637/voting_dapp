@@ -1,6 +1,7 @@
 // frontend/src/pages/OwnerSetup.jsx
 import { useState } from "react";
 import { ethers } from "ethers";
+import { handleContractError } from "../utils/handleContractError";
 import CandidateListEditor from "../components/CandidateListEditor";
 import VotingDurationInput from "../components/VotingDurationInput";
 import AnonymousToggle from "../components/AnonymousToggle";
@@ -57,8 +58,7 @@ export default function OwnerSetup({ onDeployed }) {
       setStatus("✅ 合約部署完成！");
       onDeployed(contractInfo);
     } catch (err) {
-      console.error(err);
-      setStatus("❌ 部署失敗：" + err.message);
+      setStatus(handleContractError(err));
     }
   };
 

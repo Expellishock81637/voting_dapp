@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
+import { handleContractError } from "../utils/handleContractError";
 import ResultCard from "../components/ResultCard";
 import TotalVoterCard from "../components/TotalVoterCard";
 import CountdownTimer from "../components/CountdownTimer";
@@ -50,17 +51,10 @@ const fetchResults = async (c) => {
     setWinners(winnerNames);
 
     setStatus("✅ 結果載入成功");
-  } catch (err) {
-    console.error("[❌ 錯誤偵測] fetchResults 發生錯誤");
-
-    if (err.reason === "Voting not ended") {
-      console.warn("⚠️ 嘗試提早讀取票數，但投票尚未結束");
-      setStatus("⚠️ 系統偵測到投票尚未結束，稍後將自動重新嘗試");
-    } else {
-      console.error(err);
-      setStatus("❌ 結果載入失敗：" + err.message);
+    } catch (err) {
+      const msg = handleContractError(err);
+      setStatus(msg);
     }
-  }
 };
 
 
@@ -123,8 +117,8 @@ const fetchResults = async (c) => {
           }, 5000);
         }
       } catch (err) {
-        console.error(err);
-        setStatus("❌ 初始化失敗：" + err.message);
+        const msg = handleContractError(err);
+        setStatus(msg);
       }
     };
 

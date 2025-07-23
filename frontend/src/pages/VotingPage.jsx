@@ -1,6 +1,7 @@
 // frontend/src/pages/VotingPage.jsx
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
+import { handleContractError } from "../utils/handleContractError";
 import CountdownTimer from "../components/CountdownTimer";
 import CandidateCard from "../components/CandidateCard";
 import ShareLink from "../components/ShareLink";
@@ -59,17 +60,14 @@ export default function VotingPage({ contractInfo, onViewResult }) {
       await tx.wait();
 
       setStatus("✅ 投票成功！即將跳轉至結果頁...");
-      setTimeout(onViewResult, 1500); // ✅ 1.5秒後跳轉
+      setTimeout(onViewResult, 1500); // ✅ 投票成功後跳轉
     } catch (err) {
-      console.error(err);
-      const message = err?.error?.message || err?.message || "未知錯誤";
-      if (message.includes("not started")) {
-        setStatus("⚠️ 投票尚未開始，請稍後再試！");
-      } else if (message.includes("already ended")) {
-        setStatus("⚠️ 投票已結束，無法再投票！");
-        setTimeout(onViewResult, 2000); // ✅ 已結束也導去結果頁
-      } else {
-        setStatus("❌ 投票失敗：" + message);
+      const msg = handleContractError(err);
+      setStatus(msg);
+
+      // 若錯誤內容提到已結束，仍跳轉到結果頁
+      if (msg.includes("投票已結束")) {
+        setTimeout(onViewResult, 2000);
       }
     }
   };

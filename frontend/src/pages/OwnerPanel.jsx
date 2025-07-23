@@ -1,6 +1,7 @@
 // frontend/src/pages/OwnerPanel.jsx
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
+import { handleContractError } from "../utils/handleContractError";
 import VotingDurationInput from "../components/VotingDurationInput";
 import CandidateManagerPanel from "../components/CandidateManagerPanel";
 import PrimaryButton from "../components/PrimaryButton";
@@ -80,7 +81,7 @@ export default function OwnerPanel({ contractInfo }) {
       await refreshCandidates();
     } catch (err) {
       console.error(err);
-      setStatus("❌ 新增失敗: " + err.message);
+      setStatus(handleContractError(err));
     }
   };
 
@@ -93,7 +94,7 @@ export default function OwnerPanel({ contractInfo }) {
       await refreshCandidates();
     } catch (err) {
       console.error(err);
-      setStatus("❌ 修改失敗: " + err.message);
+      setStatus(handleContractError(err));
     }
   };
 
@@ -105,7 +106,7 @@ export default function OwnerPanel({ contractInfo }) {
       await refreshCandidates();
     } catch (err) {
       console.error(err);
-      setStatus("❌ 停用失敗: " + err.message);
+      setStatus(handleContractError(err));
     }
   };
 
@@ -116,7 +117,7 @@ export default function OwnerPanel({ contractInfo }) {
       setStatus("✅ 已提前結束投票");
     } catch (err) {
       console.error(err);
-      setStatus("❌ 結束投票失敗: " + err.message);
+      setStatus(handleContractError(err));
     }
   };
 
@@ -129,7 +130,7 @@ export default function OwnerPanel({ contractInfo }) {
       setStatus(`✅ 已延長 ${extendMinutes} 分鐘`);
     } catch (err) {
       console.error(err);
-      setStatus("❌ 延長失敗: " + err.message);
+      setStatus(handleContractError(err));
     }
   };
 
@@ -140,7 +141,7 @@ export default function OwnerPanel({ contractInfo }) {
     } catch (err) {
       console.error(err);
       setQueryResult(null);
-      setStatus("❌ 查詢失敗: " + err.message);
+      setStatus(handleContractError(err));
     }
   };
 

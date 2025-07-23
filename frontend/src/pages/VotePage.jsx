@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
+import { handleContractError } from "../utils/handleContractError";
+import { useNavigate } from "react-router-dom";
 import CandidateCard from "../components/CandidateCard";
 import CountdownTimer from "../components/CountdownTimer";
 import ShareLink from "../components/ShareLink";
-import { useNavigate } from "react-router-dom";
+
 
 export default function VotePage() {
   const [contract, setContract] = useState(null);
@@ -53,8 +55,7 @@ export default function VotePage() {
 
         setStatus("✅ 錢包連接成功");
       } catch (err) {
-        console.error(err);
-        setStatus("❌ 初始化失敗：" + (err?.message || "未知錯誤"));
+        setStatus(handleContractError(err));
       }
     };
 
@@ -69,8 +70,7 @@ export default function VotePage() {
       setStatus("✅ 投票成功！即將跳轉...");
       setTimeout(() => navigate(`/result?addr=${contract.target}`), 1500);
     } catch (err) {
-      console.error(err);
-      setStatus("❌ 投票失敗：" + (err?.message || "未知錯誤"));
+      setStatus(handleContractError(err));
     }
   };
 
